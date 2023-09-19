@@ -15,7 +15,7 @@ file_path = '/Users/mkayeterry/Desktop/dataset/full_dataset.csv'
 read_recipes = pd.read_csv(file_path)
 
 # Clean pandas dataframe and save to parquet
-recipes = clean_raw_data(read_recipes.head(), 'data/dish_recipes.parquet')
+recipes = clean_raw_data(read_recipes.head(100), 'data/dish_recipes.parquet')
 
 
 # ------------------------------------------
@@ -63,3 +63,4 @@ recipes.to_sql(
     con       = engine, 
     if_exists = 'append', 
     index     = False)
+
