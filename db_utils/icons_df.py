@@ -4,6 +4,9 @@
 # The content is licensed under the SIL OFL 1.1: http://scripts.sil.org/OFL
 
 import pandas as pd
+from thefuzz import fuzz
+import matplotlib.pyplot as plt
+from db_utils.utils import *
 
 VERSION = 'master'
 
@@ -1465,7 +1468,57 @@ icons = {
   'yoast': '\uf2b1',                                # 
   'youtube': '\uf167',                              # 
   'youtube-square': '\uf431',                       # 
-  'zhihu': '\uf63f',                                # 
+  'zhihu': '\uf63f'                                 # 
 }
 
 icons_df = pd.DataFrame(list(icons.items()), columns=['icon_name', 'unicode'])
+
+# Create variable for csv file path to recipe dataset
+file_path = '/Users/mkayeterry/Desktop/dataset/full_dataset.csv'
+
+# Read CSV file containing data into pandas dataframe
+read_recipes = pd.read_csv(file_path)
+
+recipe_icons = clean_raw_data(read_recipes.head(100), 'data/recipe_icons.parquet')
+
+recipe_icons = recipe_icons[['dish', 'ingredients']]
+
+def match_icons(ingredient_df):
+
+    matched_icons = []
+    matched_unicodes = []
+
+    # Iterate through each ingredient in the list
+    for ingredient in ingredient_df['ingredients']:
+        best_unicode = None  # Initialize the best matching icon unicode
+        best_icon = None  # Initialize the best matching icon name
+        highest_score = 0  # Initialize the highest score for this ingredient
+
+        # Iterate through each row in the icons DataFrame
+        for idx, row in icons_df.iterrows():
+            score = fuzz.token_set_ratio(ingredient, row['icon_name'])
+
+            if score >= 85 and score > highest_score:
+                highest_score = score
+                best_icon = row['icon_name']
+                best_unicode = row['unicode']
+
+        if best_icon != None:
+            matched_icons.append(str(best_icon))
+            matched_unicodes.append(str(best_unicode))
+
+    return [matched_icons, matched_unicodes]
+
+matches = recipe_icons.apply(match_icons, axis=1)
+
+# Create new columns for matched icons and unicodes
+recipe_icons['icons'] = matches.apply(lambda x: x[0])
+recipe_icons['unicodes'] = matches.apply(lambda x: x[1])
+recipe_icons['num_matches'] = recipe_icons['icons'].apply(lambda x: len(x))
+
+# Calculate average number of icon mathes per row
+recipe_icons['num_matches'].mean()
+
+# Histogram of average number of matches
+hist = recipe_icons['num_matches'].hist(bins = 5)
+plt.show()
