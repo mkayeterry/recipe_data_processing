@@ -1479,7 +1479,7 @@ file_path = '/Users/mkayeterry/Desktop/dataset/full_dataset.csv'
 # Read CSV file containing data into pandas dataframe
 read_recipes = pd.read_csv(file_path)
 
-recipe_icons = clean_raw_data(read_recipes.head(100), 'data/recipe_icons.parquet')
+recipe_icons = clean_raw_data(read_recipes, 'data/recipe_icons.parquet')
 
 recipe_icons = recipe_icons[['dish', 'ingredients']]
 
